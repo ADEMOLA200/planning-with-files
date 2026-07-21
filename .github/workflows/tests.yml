@@ -1,5 +1,5 @@
-# Tests: runs the pytest suite on Linux and Windows plus the Pi extension
-# vitest suite on every PR and push to master.
+# Tests: runs the pytest suite on Linux, Windows, and macOS plus the Pi
+# extension vitest suite on every PR and push to master.
 # The pytest suite also runs scripts/sync-ide-folders.py --verify via
 # tests/test_canonical_script_sync.py, so cross-copy parity is covered.
 name: Tests
@@ -24,7 +24,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # macos-latest is the real-BSD-userland leg (shasum, BSD stat, no
+        # flock); tests/test_bsd_userland_sim.py simulates the same userland
+        # on ubuntu so GNU-only regressions fail there too.
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:

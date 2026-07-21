@@ -22,9 +22,15 @@ def get_project_dir(project_path: str) -> Tuple[Optional[Path], Optional[str]]:
     sanitized = project_path.replace('/', '-')
     if not sanitized.startswith('-'):
         sanitized = '-' + sanitized
-    sanitized = sanitized.replace('_', '-')
+    # Claude Code keeps underscores in project-dir names; probe the exact
+    # spelling first and fall back to the legacy '-' spelling for stores
+    # created by older versions of this script (v3.8.0 fix).
+    projects_root = Path.home() / '.claude' / 'projects'
+    if (not (projects_root / sanitized).is_dir()
+            and (projects_root / sanitized.replace('_', '-')).is_dir()):
+        sanitized = sanitized.replace('_', '-')
 
-    claude_path = Path.home() / '.claude' / 'projects' / sanitized
+    claude_path = projects_root / sanitized
 
     # Codex stores sessions in ~/.codex/sessions with a different format.
     # Avoid silently scanning Claude paths when running from Codex skill folder.

@@ -68,8 +68,15 @@ def get_project_dir_claude(project_path: str) -> Path:
         sanitized = p.replace('/', '-')
         if not sanitized.startswith('-'):
             sanitized = '-' + sanitized
-    sanitized = sanitized.replace('_', '-')
-    return Path.home() / '.claude' / 'projects' / sanitized
+    # Claude Code keeps underscores in project-dir names; probe the exact
+    # spelling first and fall back to the legacy '-' spelling for stores
+    # created by older versions of this script (v3.8.0 fix).
+    projects_root = Path.home() / '.claude' / 'projects'
+    if not (projects_root / sanitized).is_dir():
+        legacy = sanitized.replace('_', '-')
+        if (projects_root / legacy).is_dir():
+            return projects_root / legacy
+    return projects_root / sanitized
 
 
 def get_project_dir_opencode(project_path: str) -> Optional[Path]:
